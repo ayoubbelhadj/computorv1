@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Parser.hpp"
+#include "Equation.hpp"
 
 int main(int argc, char **argv){
     std::string input;
@@ -22,6 +23,9 @@ int main(int argc, char **argv){
         std::cerr << "Error: Invalid equation." << std::endl;
         return 1;
     }
+
+    Equation equation(parser.getTerms());
+    equation.solve();
  
     return 0;
 }

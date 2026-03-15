@@ -3,7 +3,9 @@ CXX      = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++11 -I includes
 
 SRCS     = srcs/Main.cpp \
-           srcs/Parcer.cpp
+           srcs/Parcer.cpp \
+		   srcs/Equation.cpp \
+		   srcs/Utils.cpp
 
 OBJS     = $(SRCS:.cpp=.o)
 
