@@ -186,7 +186,6 @@ void Equation::solve()
  
     int degree = _getDegree();
  
-    // Only print degree for degree >= 1
     if (degree >= 1)
         std::cout << "Polynomial degree: " << degree << std::endl;
  

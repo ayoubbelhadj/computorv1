@@ -197,7 +197,7 @@ std::string Equation::_buildImagStr(double discriminant, double denom)
     return sqrtPart + "i/" + std::to_string(intDenom);
 }
 
-// _solvePositiveDisc: Δ > 0
+// Δ > 0
 void Equation::_solvePositiveDisc(double a, double b, double discriminant)
 {
     double sqrtD = ft_sqrt(discriminant);
@@ -231,7 +231,7 @@ void Equation::_solvePositiveDisc(double a, double b, double discriminant)
         std::cout << x2 << std::endl;
 }
 
-// _solveZeroDisc: Δ = 0
+// Δ = 0
 void Equation::_solveZeroDisc(double a, double b)
 {
     double denom = 2.0 * a;
@@ -251,7 +251,7 @@ void Equation::_solveZeroDisc(double a, double b)
         std::cout << x << std::endl;
 }
 
-// _solveNegativeDisc: Δ < 0 
+// Δ < 0 
 void Equation::_solveNegativeDisc(double a, double b, double discriminant)
 {
     double sqrtD   = ft_sqrt(-discriminant);
@@ -265,14 +265,12 @@ void Equation::_solveNegativeDisc(double a, double b, double discriminant)
 
     std::cout << "Discriminant is strictly negative, the two complex solutions are:" << std::endl;
 
-    // build real part string
     std::string realStr;
     if (realNum == 0.0)
         realStr = "0";
     else
         realStr = _toFraction(realNum, denom);
 
-    // build imaginary part string
     std::string imagStr = _buildImagStr(discriminant, denom);
 
     if (realStr == "0")
@@ -321,7 +319,6 @@ void Equation::solve()
 
     int degree = _getDegree();
 
-    // Only print degree for degree >= 1
     if (degree >= 1)
         std::cout << "Polynomial degree: " << degree << std::endl;
 
