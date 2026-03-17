@@ -37,3 +37,18 @@ int ft_gcd(int a, int b)
     }
     return a;
 }
+
+void ft_simplify_sqrt(int n, int &coeff, int &remainder)
+{
+    coeff = 1;
+    remainder = n;
+
+    for (int i = 2; i * i <= remainder; i++)
+    {
+        while (remainder % (i * i) == 0)
+        {
+            coeff *= i;
+            remainder /= (i * i);
+        }
+    }
+}

@@ -25,20 +25,20 @@ std::string Equation::_toFraction(double num, double den)
 {
     if (num == 0.0)
         return "0";
- 
+
     if (!isWhole(num) || !isWhole(den))
         return _doubleToStr(num / den);
- 
+
     int numerator   = (int)num;
     int denominator = (int)den;
     int sign        = ((numerator < 0) != (denominator < 0)) ? -1 : 1;
     int absNum      = ft_abs_int(numerator);
     int absDen      = ft_abs_int(denominator);
     int divisor     = ft_gcd(absNum, absDen);
- 
+
     absNum /= divisor;
     absDen /= divisor;
- 
+
     std::string result = (sign < 0) ? "-" : "";
     result += std::to_string(absNum);
     if (absDen != 1)
@@ -102,11 +102,14 @@ void Equation::_displayReducedForm()
 
     int  degree = _getDegree();
     bool first  = true;
- 
+
     for (int i = 0; i <= degree; i++)
     {
         double coeff = _coeffs.count(i) ? _coeffs[i] : 0.0;
- 
+
+        if (coeff == 0.0 && i != 0)
+            continue;
+
         if (first)
         {
             std::cout << _termToStr(coeff, i);
@@ -126,7 +129,7 @@ void Equation::_displayReducedForm()
 void Equation::_solveZero()
 {
     double c = _coeffs.count(0) ? _coeffs[0] : 0.0;
- 
+
     if (c == 0.0)
         std::cout << "Any real number is a solution." << std::endl;
     else
@@ -138,7 +141,6 @@ void Equation::_solveFirst()
     double c = _coeffs.count(0) ? _coeffs[0] : 0.0;
     double b = _coeffs.count(1) ? _coeffs[1] : 0.0;
 
-    // Intermediate steps
     std::cout << std::endl;
     std::cout << "Intermediate steps:" << std::endl;
     std::cout << "  a = " << b << ",  b = " << c << std::endl;
@@ -148,38 +150,74 @@ void Equation::_solveFirst()
     double solution = -c / b;
     if (solution == 0.0)
         solution = 0.0;
-    // Try to display as fraction
     std::string fracStr = _toFraction(-c, b);
 
     std::cout << std::endl;
     std::cout << "The solution is:" << std::endl;
 
-    // show fraction if different from decimal
     if (fracStr != _doubleToStr(solution))
         std::cout << fracStr << " = " << solution << std::endl;
     else
         std::cout << solution << std::endl;
 }
 
+std::string Equation::_buildImagStr(double discriminant, double denom)
+{
+    double negDisc = -discriminant;
+    double imagNum = ft_sqrt(negDisc);
+
+    // not an integer, can't simplify the root
+    if (!isWhole(negDisc))
+        return _doubleToStr(imagNum / denom) + "i";
+
+    // factor out perfect squares from under the root
+    int sqrtCoeff, sqrtRemainder;
+    ft_simplify_sqrt((int)negDisc, sqrtCoeff, sqrtRemainder);
+
+    // reduce the fraction
+    int intDenom = (int)denom;
+    int divisor = ft_gcd(ft_abs_int(sqrtCoeff), ft_abs_int(intDenom));
+    sqrtCoeff /= divisor;
+    intDenom /= divisor;
+
+    // drop the "1" prefix
+    std::string outerCoeff = (sqrtCoeff == 1) ? "" : std::to_string(sqrtCoeff);
+
+    if (sqrtRemainder == 1)
+    {
+        if(intDenom == 1)
+            return outerCoeff + "i";
+        return outerCoeff + "i/" + std::to_string(intDenom);
+    }
+
+    // still a root left inside
+    std::string sqrtPart = outerCoeff + "√" + std::to_string(sqrtRemainder);
+    if(intDenom == 1)
+        return sqrtPart + "i";
+    return sqrtPart + "i/" + std::to_string(intDenom);
+}
+
+// _solvePositiveDisc: Δ > 0
 void Equation::_solvePositiveDisc(double a, double b, double discriminant)
 {
     double sqrtD = ft_sqrt(discriminant);
+    double denom = 2.0 * a;
 
     std::cout << "  √Δ = " << sqrtD << std::endl;
-    std::cout << "  x1 = (-b + √Δ) / (2a) = (" << -b << " + " << sqrtD << ") / " << (2.0 * a) << std::endl;
-    std::cout << "  x2 = (-b - √Δ) / (2a) = (" << -b << " - " << sqrtD << ") / " << (2.0 * a) << std::endl;
+    std::cout << "  x1 = (-b + √Δ) / (2a) = (" << -b << " + " << sqrtD << ") / " << denom << std::endl;
+    std::cout << "  x2 = (-b - √Δ) / (2a) = (" << -b << " - " << sqrtD << ") / " << denom << std::endl;
     std::cout << std::endl;
 
-    double x1 = (-b + sqrtD) / (2.0 * a);
-    double x2 = (-b - sqrtD) / (2.0 * a);
+    double x1 = (-b + sqrtD) / denom;
+    double x2 = (-b - sqrtD) / denom;
 
-    std::string s1 = _toFraction(-b + sqrtD, 2.0 * a);
-    std::string s2 = _toFraction(-b - sqrtD, 2.0 * a);
+    std::string s1 = _toFraction(-b + sqrtD, denom);
+    std::string s2 = _toFraction(-b - sqrtD, denom);
 
     if (x1 < x2)
     {
-        double tmp = x1; x1 = x2; x2 = tmp;
-        std::string stmp = s1; s1 = s2; s2 = stmp;
+        std::swap(x1, x2);
+        std::swap(s1, s2);
     }
 
     std::cout << "Discriminant is strictly positive, the two solutions are:" << std::endl;
@@ -193,52 +231,27 @@ void Equation::_solvePositiveDisc(double a, double b, double discriminant)
         std::cout << x2 << std::endl;
 }
 
+// _solveZeroDisc: Δ = 0
 void Equation::_solveZeroDisc(double a, double b)
 {
-    std::cout << "  x = -b / (2a) = " << -b << " / " << (2.0 * a) << std::endl;
+    double denom = 2.0 * a;
+    double x     = -b / denom;
+    if (x == 0.0)
+        x = 0.0;
+
+    std::cout << "  x = -b / (2a) = " << -b << " / " << denom << std::endl;
     std::cout << std::endl;
 
-    double x = -b / (2.0 * a);
- 
+    std::string frac = _toFraction(-b, denom);
+
     std::cout << "Discriminant is zero, the solution is:" << std::endl;
-    _printSolution(x, -b, 2.0 * a);
+    if (frac != _doubleToStr(x))
+        std::cout << frac << " = " << x << std::endl;
+    else
+        std::cout << x << std::endl;
 }
 
-std::string Equation::_buildImagStr(double discriminant, double denom)
-{
-    double negDisc = -discriminant;
-    double imagNum = ft_sqrt(negDisc);
- 
-    // if -Δ is not whole → can't simplify √ → show decimal
-    if (!isWhole(negDisc))
-        return _doubleToStr(imagNum / denom) + "i";
- 
-    // simplify √(-Δ) into sqrtCoeff * √sqrtRemainder
-    int sqrtCoeff, sqrtRemainder;
-    ft_simplify_sqrt((int)negDisc, sqrtCoeff, sqrtRemainder);
- 
-    // simplify sqrtCoeff / denom using GCD
-    int intDenom  = (int)denom;
-    int divisor   = ft_gcd(ft_abs_int(sqrtCoeff), ft_abs_int(intDenom));
-    sqrtCoeff /= divisor;
-    intDenom  /= divisor;
- 
-    // build the outer coefficient string: "3" or "" (when 1)
-    std::string outerCoeff = (sqrtCoeff == 1) ? "" : std::to_string(sqrtCoeff);
- 
-    if (sqrtRemainder == 1)
-    {
-        // √ fully simplified → whole number: "2i/5" or "i/5"
-        return (intDenom == 1) ? outerCoeff + "i"
-                               : outerCoeff + "i/" + std::to_string(intDenom);
-    }
- 
-    // still has √ inside: "3√2i/11" or "√2i/3"
-    std::string sqrtPart = outerCoeff + "√" + std::to_string(sqrtRemainder);
-    return (intDenom == 1) ? sqrtPart + "i"
-                           : sqrtPart + "i/" + std::to_string(intDenom);
-}
-
+// _solveNegativeDisc: Δ < 0 
 void Equation::_solveNegativeDisc(double a, double b, double discriminant)
 {
     double sqrtD   = ft_sqrt(-discriminant);
@@ -246,8 +259,8 @@ void Equation::_solveNegativeDisc(double a, double b, double discriminant)
     double realNum = -b;
 
     std::cout << "  √(-Δ) = √(" << -discriminant << ") = " << sqrtD << std::endl;
-    std::cout << "  real part = -b / (2a)     = " << (realNum == 0.0 ? 0.0 : realNum) << " / " << denom << std::endl;
-    std::cout << "  imag part = √(-Δ) / (2a)  = " << sqrtD << " / " << denom << std::endl;
+    std::cout << "  real part = -b / (2a)    = " << (realNum == 0.0 ? 0.0 : realNum) << " / " << denom << std::endl;
+    std::cout << "  imag part = √(-Δ) / (2a) = " << sqrtD << " / " << denom << std::endl;
     std::cout << std::endl;
 
     std::cout << "Discriminant is strictly negative, the two complex solutions are:" << std::endl;
@@ -261,13 +274,9 @@ void Equation::_solveNegativeDisc(double a, double b, double discriminant)
 
     // build imaginary part string
     std::string imagStr = _buildImagStr(discriminant, denom);
- 
-    // print: skip "0 +" when real is 0
+
     if (realStr == "0")
-    {
-        std::cout << imagStr << std::endl;
-        std::cout << "-" << imagStr << std::endl;
-    }
+        std::cout << "±" << imagStr << std::endl;
     else
     {
         std::cout << realStr << " + " << imagStr << std::endl;
@@ -280,10 +289,9 @@ void Equation::_solveSecond()
     double a = _coeffs.count(2) ? _coeffs[2] : 0.0;
     double b = _coeffs.count(1) ? _coeffs[1] : 0.0;
     double c = _coeffs.count(0) ? _coeffs[0] : 0.0;
- 
+
     double discriminant = b * b - 4.0 * a * c;
- 
-    // Print intermediate steps
+
     std::cout << std::endl;
     std::cout << "Intermediate steps:" << std::endl;
     std::cout << "  a = " << a << ",  b = " << b << ",  c = " << c << std::endl;
@@ -304,23 +312,25 @@ void Equation::_solveSecond()
 void Equation::solve()
 {
     _displayReducedForm();
- 
+
     if (_isAllZero())
     {
         _solveZero();
         return;
     }
- 
+
     int degree = _getDegree();
- 
+
     // Only print degree for degree >= 1
     if (degree >= 1)
         std::cout << "Polynomial degree: " << degree << std::endl;
- 
-    if      (degree == 0) _solveZero();
-    else if (degree == 1) _solveFirst();
-    else if (degree == 2) _solveSecond();
+
+    if      (degree == 0)
+        _solveZero();
+    else if (degree == 1)
+        _solveFirst();
+    else if (degree == 2)
+        _solveSecond();
     else
         std::cout << "The polynomial degree is strictly greater than 2, I can't solve." << std::endl;
 }
- 
