@@ -28,16 +28,16 @@ bool Equation::_isAllZero()
 void Equation::_displayReducedForm()
 {
     std::cout << "Reduced form: ";
- 
+
     if (_isAllZero())
     {
         std::cout << "0 * X^0 = 0" << std::endl;
         return;
     }
- 
+
     int  degree = _getDegree();
     bool first  = true;
- 
+
     for (int i = 0; i <= degree; i++)
     {
         double coeff = _coeffs.count(i) ? _coeffs[i] : 0.0;
@@ -61,7 +61,7 @@ void Equation::_displayReducedForm()
 void Equation::_solveZero()
 {
     double c = _coeffs.count(0) ? _coeffs[0] : 0.0;
- 
+
     if (c == 0.0)
         std::cout << "Any real number is a solution." << std::endl;
     else
@@ -85,22 +85,22 @@ void Equation::_solveSecond()
     double a = _coeffs.count(2) ? _coeffs[2] : 0.0;
     double b = _coeffs.count(1) ? _coeffs[1] : 0.0;
     double c = _coeffs.count(0) ? _coeffs[0] : 0.0;
- 
+
     double discriminant = b * b - 4.0 * a * c;
- 
+
     if (discriminant > 0.0)
     {
         double sqrtD = ft_sqrt(discriminant);
         double x1    = (-b + sqrtD) / (2.0 * a);
         double x2    = (-b - sqrtD) / (2.0 * a);
- 
+
         if (x1 < x2)
         {
             double tmp = x1;
             x1 = x2;
             x2 = tmp;
         }
- 
+
         std::cout << "Discriminant is strictly positive, the two solutions are:" << std::endl;
         std::cout << x1 << std::endl;
         std::cout << x2 << std::endl;
@@ -108,58 +108,68 @@ void Equation::_solveSecond()
     else if (discriminant == 0.0)
     {
         double x = -b / (2.0 * a);
- 
+        if (x == 0.0)
+            x = 0.0;
         std::cout << "Discriminant is zero, the solution is:" << std::endl;
         std::cout << x << std::endl;
     }
-     else
+    else
     {
         // Complex solutions: (-b ± i√(-Δ)) / 2a
         double sqrtD  = ft_sqrt(-discriminant);
         double denom  = 2.0 * a;
         double realNum = -b;
         double imagNum = sqrtD;
- 
+
         std::cout << "Discriminant is strictly negative, the two complex solutions are:" << std::endl;
- 
-        if (denom == 1.0)
+
+        bool realWhole  = (realNum == (int)realNum);
+        bool imagWhole  = (imagNum == (int)imagNum);
+        bool denomWhole = (denom   == (int)denom);
+
+        if (realWhole && imagWhole && denomWhole)
         {
-            std::cout << realNum << " + " << imagNum << "i" << std::endl;
-            std::cout << realNum << " - " << imagNum << "i" << std::endl;
+            int rn = (int)realNum;
+            int in = (int)imagNum;
+            int dn = (int)denom;
+ 
+            int gr = ft_gcd(ft_abs_int(rn), ft_abs_int(dn));
+            int gi = ft_gcd(ft_abs_int(in), ft_abs_int(dn));
+ 
+            int rNum = rn / gr;
+            int rDen = dn / gr;
+
+            int iNum = in / gi;
+            int iDen = dn / gi;
+
+            // build real string
+            std::string realStr;
+            if (rNum == 0)
+                realStr = "0";
+            else if (rDen == 1)
+                realStr = std::to_string(rNum);
+            else
+                realStr = std::to_string(rNum) + "/" + std::to_string(rDen);
+
+            // build imag string
+            std::string imagStr;
+            if (iDen == 1)
+                imagStr = std::to_string(iNum) + "i";
+            else
+                imagStr = std::to_string(iNum) + "i/" + std::to_string(iDen);
+
+            std::cout << realStr << " + " << imagStr << std::endl;
+            std::cout << realStr << " - " << imagStr << std::endl;
         }
         else
         {
-            std::string realStr, imagStr;
- 
-            if (realNum == 0.0)
-                realStr = "0";
-            else
-            {
-                int rn = (int)realNum;
-                int rd = (int)denom;
-                int g  = ft_gcd(ft_abs_int(rn), ft_abs_int(rd));
-                rn /= g;
-                rd /= g;
-                if (rd == 1)
-                    realStr = std::to_string(rn);
-                else
-                    realStr = std::to_string(rn) + "/" + std::to_string(rd);
-            }
- 
-            {
-                int in_ = (int)(imagNum + 0.5);
-                int id  = (int)denom;
-                int g   = ft_gcd(ft_abs_int(in_), ft_abs_int(id));
-                in_ /= g;
-                id  /= g;
-                if (id == 1)
-                    imagStr = std::to_string(in_) + "i";
-                else
-                    imagStr = std::to_string(in_) + "i/" + std::to_string(id);
-            }
- 
-            std::cout << realStr << " + " << imagStr << std::endl;
-            std::cout << realStr << " - " << imagStr << std::endl;
+            double realPart = realNum / denom;
+            double imagPart = imagNum / denom;
+
+            if (realPart == 0.0) realPart = 0.0;
+
+            std::cout << realPart << " + " << imagPart << "i" << std::endl;
+            std::cout << realPart << " - " << imagPart << "i" << std::endl;
         }
     }
 }

@@ -6,7 +6,7 @@ double ft_sqrt(double n)
         return -1;
     if (n == 0)
         return 0;
- 
+
     double x = n;
     for (int i = 0; i < 1000; i++)
         x = (x + n / x) / 2.0;

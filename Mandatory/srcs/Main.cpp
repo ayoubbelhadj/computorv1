@@ -26,6 +26,6 @@ int main(int argc, char **argv){
 
     Equation equation(parser.getTerms());
     equation.solve();
- 
+
     return 0;
 }
